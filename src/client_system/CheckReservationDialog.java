@@ -46,8 +46,8 @@ public class CheckReservationDialog extends Dialog implements ActionListener, Wi
 		tfMonth = new TextField("", 2);
 		tfDays = new TextField("",2);
 		
-		buttonOK = new Button("OK");
-		buttonCancel = new Button("Cancel");
+		buttonOK = new Button("予約確認");
+		buttonCancel = new Button("キャンセル");
 		
 		panelNorth = new Panel();
 		panelCenter = new Panel();

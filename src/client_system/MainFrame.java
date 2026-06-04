@@ -69,8 +69,8 @@ public class MainFrame extends Frame implements ActionListener, WindowListener{
 		panelNorthSub2.add( choiceFacility);					// @1 教室選択コンボボックスを付加
 		panelNorthSub2.add( new Label( "　"));					// @1 コンボボックスとボタンの隙間をラベルで付加
 		panelNorthSub2.add( buttonExplanation);					// @1 教室概要表示ボタンを付加
-		panelNorthSub2.add( new Label( "　"));	
-		panelNorthSub2.add(buttonCheckReservation);
+		panelNorthSub2.add( new Label( "　"));	                // @3 隙間の付加
+		panelNorthSub2.add(buttonCheckReservation);             // @3 教室予約状況確認ボタンを付加
 																// @1
 		// @1 上部パネルに上下2つのパネルを追加
 		panelNorth = new Panel( new BorderLayout());			// @1 panelNorthをBorderLayoutのパネルで生成
@@ -105,7 +105,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener{
 		buttonLog.addActionListener( this);						// ActionListenerにログインボタンを追加
 		buttonExplanation.addActionListener( this);				// @1 ActionListenerに教室概要ボタンを追加
 		buttonReservation.addActionListener( this);				// @2 ActionListenerに新規予約ボタンを追加
-		buttonCheckReservation.addActionListener(this);
+		buttonCheckReservation.addActionListener(this);         // @3 ActionListenerに予約確認ボタンを追加
 		addWindowListener( this);								// WindowListenerを追加
 	}
 
@@ -163,8 +163,8 @@ public class MainFrame extends Frame implements ActionListener, WindowListener{
 		// @2 押下ボタンが新規予約ボタンの時，makeReservationメソッドを実行
 		} else if( e.getSource() == buttonReservation) {		// @2
 			result = reservationControl.makeReservation( this);	// @2
-		} else if (e.getSource() == buttonCheckReservation ) {
-			result = reservationControl.CheckReservation( this);
+		} else if (e.getSource() == buttonCheckReservation ) {  // @3
+			result = reservationControl.CheckReservation( this);// @3
 		}
 		textMessage.setText( result);							// メソッドの戻り値をテキストエリアに表示
 	}

@@ -315,27 +315,86 @@ public class ReservationControl {
 		}																			// @2
 		return	abailableTime;														// @2 open_time,close_timeの「時」を返す（エラーなら{0,0}が返る
 	}
-	public String CheckReservation( MainFrame frame) {
-		String res = "";
-		
-		CheckReservationDialog rd = new CheckReservationDialog( frame, this);
-		
-		rd.setVisible( true);													// @2 新規予約画面を表示（ここで制御がrdインスタンスに移る）
-		if( rd.canceled) {														// @2 新規予約操作をキャンセルしたとき
-			return	res;														// @2 新規予約終了
-		}
-		
-		String	ryear_str	= rd.tfYear.getText();								// @2 入力された年情報をテキストで取得
-		String	rmonth_str	= rd.tfMonth.getText();								// @2 選択された月情報をテキストで取得
-		String	rday_str	= rd.tfDays.getText();	
-		
-		if( rmonth_str.length() == 1) {											// @2 月の文字数が1桁の時
-			rmonth_str = "0" + rmonth_str;										// @2 　月の先頭に"0"を付加
-		}																		// @2
-		if( rday_str.length() == 1) {											// @2 日の文字数が1桁の時
-			rday_str = "0" + rday_str;											// @2 　日の先頭に"0"を付加
-		}		
-		
-		return res;
-	}
+    public String CheckReservation( MainFrame frame) {
+        String res = "";
+
+        CheckReservationDialog rd = new CheckReservationDialog( frame, this);
+        rd.setVisible( true); // ダイアログを表示
+
+        if( rd.canceled) { // キャンセルされたら終了
+            return res;
+        }
+
+        // ダイアログから入力値を取得（前後の余分な空白をtrim()で削除）
+        String ryear_str   = rd.tfYear.getText().trim();
+        String rmonth_str  = rd.tfMonth.getText().trim();
+        String rday_str    = rd.tfDays.getText().trim();
+        String facility    = rd.choiceFacility.getSelectedItem(); // 選択された教室ID
+
+        String sql = "";
+        String titleDate = "";
+
+        // 年・月・日のいずれかが空欄の場合は「全件検索」にする
+        if (ryear_str.equals("") || rmonth_str.equals("") || rday_str.equals("")) {
+            // 日付を指定せず、その教室の全予約を日付・開始時刻順に取得
+            sql = "SELECT * FROM db_reservation.reservation WHERE facility_id = '"
+                    + facility + "' ORDER BY day ASC, start_time ASC;";
+            titleDate = "全期間";
+        } else {
+            // 月と日が一桁だったら、前に0を付加してフォーマット(yyyy-MM-dd)に合わせる
+            if( rmonth_str.length() == 1) {
+                rmonth_str = "0" + rmonth_str;
+            }
+            if( rday_str.length() == 1) {
+                rday_str = "0" + rday_str;
+            }
+            String rdate = ryear_str + "-" + rmonth_str + "-" + rday_str;
+
+            // 特定の日付の予約を取得
+            sql = "SELECT * FROM db_reservation.reservation WHERE facility_id = '"
+                    + facility + "' AND day = '" + rdate + "' ORDER BY start_time ASC;";
+            titleDate = rdate;
+        }
+
+        // DB接続とクエリ実行
+        connectDB();
+        try {
+            System.out.println(sql); // デバッグ用ログ
+            ResultSet rs = sqlStmt.executeQuery(sql);
+
+            // 見出しの作成
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("【%s 教室 の %s 予約状況】\n", facility, titleDate));
+            sb.append("予約ID | 利用日付   | 利用者ID   | 開始時刻  ~ 終了時刻 |\n");
+            sb.append("---------------------------------------------------------\n");
+
+            boolean hasData = false;
+            while(rs.next()) {
+                hasData = true;
+                int id           = rs.getInt("reservation_id");
+                String day       = rs.getString("day"); // 利用日
+                String userId    = rs.getString("user_id");
+                String startTime = rs.getString("start_time").substring(0, 5); // hh:mm形式に
+                String endTime   = rs.getString("end_time").substring(0, 5);   // hh:mm形式に
+
+                // 1行分のデータを作成（全件表示のときに見やすいよう、利用日付「day」を列に追加しています）
+                sb.append(String.format(" %5d | %s | %-10s | %s ~ %s",
+                        id, day, userId, startTime, endTime));
+            }
+
+            if (!hasData) {
+                sb.append("該当する予約はありません。\n");
+            }
+
+            res = sb.toString();
+
+        } catch(Exception e) {
+            res = "予期しないエラーが発生しました。";
+            e.printStackTrace();
+        } finally {
+            closeDB(); // 必ず切断
+        }
+
+        return res;
+    }
 }
