@@ -1,0 +1,8 @@
+# デフォルトの無視対象ファイル
+/shelf/
+/workspace.xml
+
+/bin
+*.class
+/.settings
+.gitattributes
