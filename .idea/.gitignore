@@ -2,7 +2,7 @@
 /shelf/
 /workspace.xml
 
-/bin
+*/bin/*
 *.class
-/.settings
+*/.settings/
 .gitattributes
