@@ -326,24 +326,24 @@ public class ReservationControl {
 		String res = "";
 
 		CheckReservationDialog rd = new CheckReservationDialog(frame, this);
-		rd.setVisible(true); // ダイアログを表示
+		rd.setVisible(true); // @3 ダイアログを表示
 
-		if (rd.canceled) { // キャンセルされたら終了
+		if (rd.canceled) { // @3 キャンセルされたら終了
 			return res;
 		}
 
-		// ダイアログから入力値を取得（前後の余分な空白をtrim()で削除）
+		// @3 ダイアログから入力値を取得（前後の余分な空白をtrim()で削除）
 		String ryear_str = rd.tfYear.getText().trim();
 		String rmonth_str = rd.tfMonth.getText().trim();
 		String rday_str = rd.tfDays.getText().trim();
-		String facility = rd.choiceFacility.getSelectedItem(); // 選択された教室ID
+		String facility = rd.choiceFacility.getSelectedItem(); // @3 選択された教室ID
 
 		String sql = "";
 		String titleDate = "";
 
 		// 年・月・日のいずれかが空欄の場合は「全件検索」にする
 		if (ryear_str.equals("") || rmonth_str.equals("") || rday_str.equals("")) {
-			// 日付を指定せず、その教室の全予約を日付・開始時刻順に取得
+			// @3 日付を指定せず、その教室の全予約を日付・開始時刻順に取得
 			sql = "SELECT * FROM db_reservation.reservation WHERE facility_id = '"
 					+ facility + "' ORDER BY day ASC, start_time ASC;";
 			titleDate = "全期間";
@@ -420,5 +420,53 @@ public class ReservationControl {
 		}
 
 		return res;
+	}
+
+	public String SelfReservation(MainFrame frame) { // @4
+		String res = ""; // @4
+
+		if (flagLogin == true) { // @4
+			String sql = "SELECT * FROM db_reservation.reservation WHERE user_id = '" + reservationUserID // @4
+					+ "' ORDER BY day ASC, start_time ASC;"; // @4
+			connectDB(); // @4
+			try { // @4
+				System.out.println(sql); // @4 デバッグ用ログ
+				ResultSet rs = sqlStmt.executeQuery(sql); // @4
+
+				// 見出しの作成 @4
+				StringBuilder sb = new StringBuilder(); // @4
+				sb.append(String.format("【ログインユーザ：%s の予約状況】\n", reservationUserID)); // @4
+				sb.append("予約ID | 利用日付   | 教室ID     | 開始時刻  ~ 終了時刻 |\n"); // @4
+				sb.append("---------------------------------------------------------\n"); // @4
+
+				boolean hasData = false; // @4
+				while (rs.next()) { // @4
+					hasData = true; // @4
+					int id = rs.getInt("reservation_id"); // @4
+					String day = rs.getString("day"); // 利用日 @4
+					String facilityId = rs.getString("facility_id"); // @4
+					String startTime = rs.getString("start_time").substring(0, 5); // hh:mm形式に @4
+					String endTime = rs.getString("end_time").substring(0, 5); // hh:mm形式に @4
+
+					sb.append(String.format(" %5d | %s | %-10s | %s ~ %s\n", // @4
+							id, day, facilityId, startTime, endTime)); // @4
+				} // @4
+
+				if (!hasData) { // @4
+					sb.append("該当する予約はありません。\n"); // @4
+				} // @4
+
+				res = sb.toString(); // @4
+
+			} catch (Exception e) { // @4
+				res = "予期しないエラーが発生しました。"; // @4
+				e.printStackTrace(); // @4
+			} finally { // @4
+				closeDB(); // 必ず切断 @4
+			} // @4
+		} else { // @4
+			res = "ログインして下さい。"; // @4
+		} // @4
+		return res; // @4
 	}
 }
