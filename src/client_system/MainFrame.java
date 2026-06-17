@@ -72,7 +72,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 		panelNorthSub2.add(new Label("　")); // @1 コンボボックスとボタンの隙間をラベルで付加
 		panelNorthSub2.add(buttonExplanation); // @1 教室概要表示ボタンを付加
 		panelNorthSub2.add(new Label("　")); // @3 隙間の付加
-		panelNorthSub2.add(buttonCheckReservation); // @3
+		panelNorthSub2.add(buttonCheckReservation); // @3 教室予約状況確認ボタンを付加
 		// @1
 		// @1 上部パネルに上下2つのパネルを追加
 		panelNorth = new Panel(new BorderLayout()); // @1 panelNorthをBorderLayoutのパネルで生成
@@ -172,7 +172,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 		} else if (e.getSource() == buttonCheckReservation) { // @3
 			result = reservationControl.CheckReservation(this);// @3
 		} else if (e.getSource() == buttonSelfReservation) { // @4
-			result = reservationControl.SelfReservation(this);// @4
+			result = reservationControl.selfReservation(this);// @4
 		}
 		textMessage.setText(result); // メソッドの戻り値をテキストエリアに表示
 	}
