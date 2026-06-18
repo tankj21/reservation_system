@@ -426,8 +426,12 @@ public class ReservationControl {
 		String res = "";
 
 		if (flagLogin) {
+			Calendar calendar = Calendar.getInstance(); // @4.1 カレンダーの取得
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // @4.1 データ型整形
+			String today = sdf.format(calendar.getTime()); // @4.1 今日の日付をyyyy-MM-dd形式で取得
+
 			String sql = "SELECT * FROM db_reservation.reservation WHERE user_id = '" + reservationUserID
-					+ "' ORDER BY day ASC, start_time ASC;";
+					+ "' AND day >= '" + today + "' ORDER BY day ASC, start_time ASC;"; // @4.1 今日以降の予約を表示するように
 			connectDB();
 			try {
 				System.out.println(sql); // デバッグ用ログ
