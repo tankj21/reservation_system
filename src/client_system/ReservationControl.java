@@ -175,6 +175,10 @@ public class ReservationControl {
 				// @2 入力された日付が正しいか，以下2点をチェック
 				// @2 入力された文字が半角数字になっているか．
 				// @2 日付として成立している値か
+			if (!ryear_str.matches("[0-9]+") || !rmonth_str.matches("[0-9]+") || !rday_str.matches("[0-9]+")) { // @2
+				res = "日付の値を修正して下さい。"; // @2
+				return res; // @2
+			} // @2
 			try { // @2
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); // @2 日付のフォーマットを定義
 				df.setLenient(false); // @2 日付フォーマットのチェックを厳格化
@@ -348,6 +352,10 @@ public class ReservationControl {
 					+ facility + "' ORDER BY day ASC, start_time ASC;";
 			titleDate = "全期間";
 		} else {
+			if (!ryear_str.matches("[0-9]+") || !rmonth_str.matches("[0-9]+") || !rday_str.matches("[0-9]+")) {
+				res = "日付の値を修正して下さい。";
+				return res;
+			}
 			// 月と日が一桁だったら、前に0を付加してフォーマット(yyyy-MM-dd)に合わせる
 			if (rmonth_str.length() == 1) {
 				rmonth_str = "0" + rmonth_str;
