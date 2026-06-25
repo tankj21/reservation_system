@@ -481,4 +481,191 @@ public class ReservationControl {
 		}
 		return res;
 	}
+
+	public static class ReservationInfo {
+		public int reservationId;
+		public String facilityId;
+		public String userId;
+		public String day; // yyyy-MM-dd
+		public String startTime; // hh:mm:ss
+		public String endTime; // hh:mm:ss
+	}
+
+	public ReservationInfo getReservationForUpdate(String reservationIdStr) {
+		if (!reservationIdStr.matches("[0-9]+")) {
+			return null;
+		}
+		int reservationId = Integer.parseInt(reservationIdStr);
+		connectDB();
+		try {
+			String sql = "SELECT * FROM db_reservation.reservation WHERE reservation_id = " + reservationId + ";";
+			ResultSet rs = sqlStmt.executeQuery(sql);
+			if (rs.next()) {
+				ReservationInfo info = new ReservationInfo();
+				info.reservationId = rs.getInt("reservation_id");
+				info.facilityId = rs.getString("facility_id");
+				info.userId = rs.getString("user_id");
+				info.day = rs.getString("day");
+				info.startTime = rs.getString("start_time");
+				info.endTime = rs.getString("end_time");
+				return info;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeDB();
+		}
+		return null;
+	}
+
+	public String changeReservation(MainFrame frame) {
+		String res = "";
+
+		if (flagLogin) {
+			ChangeReservationDialog rd = new ChangeReservationDialog(frame, this);
+			rd.setVisible(true); // 予約変更画面を表示（ここで制御がrdインスタンスに移る）
+			if (rd.canceled) {
+				// キャンセルまたはダイアログを閉じた時は、空文字列 "" を返すことで結果表示エリアをクリアする
+				return res;
+			}
+
+			// 入力情報の取得
+			String ryear_str = rd.tfYear.getText().trim();
+			String rmonth_str = rd.tfMonth.getText().trim();
+			String rday_str = rd.tfDay.getText().trim();
+			String reservationIdStr = rd.tfReservationId.getText().trim();
+
+			// 入力文字が半角数字になっているか
+			if (!reservationIdStr.matches("[0-9]+") || !ryear_str.matches("[0-9]+") || !rmonth_str.matches("[0-9]+") || !rday_str.matches("[0-9]+")) {
+				res = "日付の値を修正して下さい。";
+				return res;
+			}
+
+			// 月と日が一桁だったら，前に0を付加
+			if (rmonth_str.length() == 1) {
+				rmonth_str = "0" + rmonth_str;
+			}
+			if (rday_str.length() == 1) {
+				rday_str = "0" + rday_str;
+			}
+
+			// 日付として成立している値か
+			try {
+				DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+				df.setLenient(false);
+				String inData = ryear_str + "-" + rmonth_str + "-" + rday_str;
+				String convData = df.format(df.parse(inData));
+				if (!inData.equals(convData)) {
+					res = "日付の書式を修正して下さい。（年：西暦4桁，月：1～12，日：1～31(各月月末まで))";
+					return res;
+				}
+			} catch (ParseException p) {
+				res = "日付の値を修正して下さい。";
+				return res;
+			}
+
+			// 変更後の予約日が現時点より後であるかのチェック
+			Calendar dateReservation = Calendar.getInstance();
+			dateReservation.set(Integer.parseInt(ryear_str), Integer.parseInt(rmonth_str) - 1, Integer.parseInt(rday_str));
+			Calendar dateNow = Calendar.getInstance();
+			if (!dateReservation.after(dateNow)) {
+				res = "予約日が無効です。";
+				return res;
+			}
+
+			// 選択されている教室名,利用開始時刻，終了時刻を取得
+			String facility = rd.choiceFacility.getSelectedItem();
+			String st = rd.startHour.getSelectedItem() + ":" + rd.startMinute.getSelectedItem() + ":00";
+			String et = rd.endHour.getSelectedItem() + ":" + rd.endMinute.getSelectedItem() + ":00";
+
+			// 開始時刻と終了時刻のチェック
+			if (st.compareTo(et) >= 0) {
+				res = "開始時刻と終了時刻が同じか終了時刻の方が早くなっています。";
+				return res;
+			}
+
+			try {
+				// 指定教室の利用可能開始時刻と終了時刻を取得
+				int limit[][] = getAvailableTime(facility);
+				String limitString[][] = { { "", "" }, { "", "" } };
+				for (int i = 0; i < 2; i++) {
+					for (int j = 0; j < 2; j++) {
+						limitString[i][j] = String.valueOf(limit[i][j]);
+						if (limitString[i][j].length() == 1) {
+							limitString[i][j] = "0" + limitString[i][j];
+						}
+					}
+				}
+				String startLimit = limitString[0][0] + ":" + limitString[0][1] + ":00";
+				String endLimit = limitString[1][0] + ":" + limitString[1][1] + ":00";
+
+				// 利用可能時間内かのチェック
+				if (startLimit.compareTo(st) > 0 || endLimit.compareTo(et) < 0) {
+					res = "利用可能時間外です。";
+					return res;
+				}
+
+				int reservationId = Integer.parseInt(reservationIdStr);
+
+				// 変更対象予約の存在チェックと所有者（ログインユーザ）チェック
+				connectDB();
+				String checkSql = "SELECT * FROM db_reservation.reservation WHERE reservation_id = " + reservationId + ";";
+				ResultSet checkRs = sqlStmt.executeQuery(checkSql);
+				if (!checkRs.next()) {
+					res = "指定された予約IDが存在しません。";
+					closeDB();
+					return res;
+				}
+				String dbUserId = checkRs.getString("user_id");
+				if (!dbUserId.equals(reservationUserID)) {
+					res = "自分以外の予約は変更できません。";
+					closeDB();
+					return res;
+				}
+				closeDB();
+
+				// 重複チェック (変更対象の予約ID自身は除く)
+				connectDB();
+				String rdate = ryear_str + "-" + rmonth_str + "-" + rday_str;
+				String sql = "SELECT * FROM db_reservation.reservation WHERE facility_id = '" + facility
+						+ "' AND day = '" + rdate + "' AND reservation_id <> " + reservationId + ";";
+				System.out.println(sql);
+				ResultSet rs = sqlStmt.executeQuery(sql);
+				boolean ng = false;
+				while (rs.next()) {
+					String start = rs.getString("start_time");
+					String end = rs.getString("end_time");
+					if ((start.compareTo(st) <= 0 && st.compareTo(end) <= 0) ||
+							(st.compareTo(start) <= 0 && start.compareTo(et) <= 0)) {
+						ng = true;
+						break;
+					}
+				}
+
+				if (!ng) {
+					Calendar justNow = Calendar.getInstance();
+					SimpleDateFormat resDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					String now = resDate.format(justNow.getTime());
+
+					// UPDATE文の実行
+					sql = "UPDATE db_reservation.reservation SET facility_id = '" + facility
+							+ "', date = '" + now + "', day = '" + rdate + "', start_time = '" + st
+							+ "', end_time = '" + et + "' WHERE reservation_id = " + reservationId + ";";
+					System.out.println(sql);
+					sqlStmt.executeUpdate(sql);
+					res = "予約ID " + reservationId + " の予約を " + rdate + " " + st.substring(0, 5) + "～" + et.substring(0, 5) + " " + facility + "教室に変更しました。";
+				} else {
+					res = "既にある予約に重なっています。";
+				}
+			} catch (Exception e) {
+				res = "予期しないエラーが発生しました。";
+				e.printStackTrace();
+			} finally {
+				closeDB();
+			}
+		} else {
+			res = "ログインして下さい。";
+		}
+		return res;
+	}
 }

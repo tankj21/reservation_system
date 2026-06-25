@@ -28,6 +28,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 	Button buttonReservation; // @2 新規予約ボタン
 	Button buttonCheckReservation; // @3 教室予約状況確認ボタン
 	Button buttonSelfReservation; // @4 自分の予約確認ボタン
+	Button buttonChangeReservation; // 予約変更ボタン
 	// @1 コンボボックスのインスタンス生成
 	ChoiceFacility choiceFacility; // @1 教室選択用コンボボックス
 	// テキストフィールドのインスタンス生成
@@ -45,6 +46,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 		buttonReservation = new Button("新規予約"); // @2 新規予約ボタン
 		buttonCheckReservation = new Button("予約確認"); // @3 教室予約状況確認ボタン
 		buttonSelfReservation = new Button("自分の予約確認"); // @4 自分の予約確認ボタン
+		buttonChangeReservation = new Button("予約変更"); // 予約変更ボタン
 														// @1
 		// @1 教室選択用コンボボックスの生成
 		List<String> facilityId = new ArrayList<String>(); // @1 全てのfacilityIDを入れるリスト
@@ -102,6 +104,8 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 		panelSouth.add(buttonReservation); // @2 新規予約ボタンを付加
 		panelSouth.add(new Label("　")); // @4 隙間の付加
 		panelSouth.add(buttonSelfReservation); // @4 自分の予約確認ボタン
+		panelSouth.add(new Label("　")); // 隙間の付加
+		panelSouth.add(buttonChangeReservation); // 予約変更ボタンを付加
 
 		// @2 MainFrameに下部パネルを追加
 		add(panelSouth, BorderLayout.SOUTH);
@@ -112,6 +116,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 		buttonReservation.addActionListener(this); // @2 ActionListenerに新規予約ボタンを追加
 		buttonCheckReservation.addActionListener(this); // @3 ActionListenerに予約確認ボタンを追加
 		buttonSelfReservation.addActionListener(this); // @4 ActionListenerに自分の予約確認ボタンを追加
+		buttonChangeReservation.addActionListener(this); // ActionListenerに予約変更ボタンを追加
 		addWindowListener(this); // WindowListenerを追加
 	}
 
@@ -173,6 +178,8 @@ public class MainFrame extends Frame implements ActionListener, WindowListener {
 			result = reservationControl.CheckReservation(this);// @3
 		} else if (e.getSource() == buttonSelfReservation) { // @4
 			result = reservationControl.selfReservation(this);// @4
+		} else if (e.getSource() == buttonChangeReservation) {
+			result = reservationControl.changeReservation(this);
 		}
 		textMessage.setText(result); // メソッドの戻り値をテキストエリアに表示
 	}
