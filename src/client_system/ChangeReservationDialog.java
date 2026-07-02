@@ -19,6 +19,7 @@ import java.util.List;
 public class ChangeReservationDialog extends Dialog implements ActionListener, WindowListener, ItemListener {
 
 	boolean canceled; // 変更キャンセルステータス（キャンセル：true）
+	boolean deleteRequested; // 削除要求ステータス（削除：true）
 	ReservationControl rc; // ReservationControlインスタンス保存用
 
 	// パネル
@@ -31,6 +32,7 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 	// 入力用コンポーネント
 	TextField tfReservationId; // 変更対象予約IDのテキストフィールド
 	Button buttonLoad; // 予約情報読込ボタン
+	Button buttonDelete; // 削除ボタン
 	ChoiceFacility choiceFacility; // 教室選択用ボックス
 	TextField tfYear, tfMonth, tfDay; // 年月日のテキストフィールド
 	ChoiceHour startHour; // 予約開始時間（時）の選択ボックス
@@ -77,6 +79,9 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 		// ボタンの生成
 		buttonOK = new Button("変更実行");
 		buttonCancel = new Button("キャンセル");
+		buttonDelete = new Button("削除");
+
+		deleteRequested = false;
 
 		// パネルの生成
 		panelNorth = new Panel(new BorderLayout());
@@ -121,6 +126,8 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 		buttonPanel.add(buttonCancel);
 		buttonPanel.add(new Label("   "));
 		buttonPanel.add(buttonOK);
+		buttonPanel.add(new Label("   "));
+		buttonPanel.add(buttonDelete);
 
 		// メッセージラベルを中央寄せで配置するためのサブパネル
 		Panel msgPanel = new Panel();
@@ -140,6 +147,7 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 		buttonLoad.addActionListener(this);
 		buttonOK.addActionListener(this);
 		buttonCancel.addActionListener(this);
+		buttonDelete.addActionListener(this);
 		choiceFacility.addItemListener(this);
 		startHour.addItemListener(this);
 		endHour.addItemListener(this);
@@ -175,7 +183,8 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 			lblMessage.setText("指定された予約IDが存在しません。");
 			return;
 		}
-		if (!info.userId.equals(rc.reservationUserID)) {
+		System.out.println("Comparing: DB UserID = [" + info.userId + "], LoggedIn UserID = [" + rc.reservationUserID + "]");
+		if (!info.userId.trim().equalsIgnoreCase(rc.reservationUserID.trim())) {
 			lblMessage.setText("自分以外の予約は変更できません。");
 			return;
 		}
@@ -249,6 +258,11 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 			loadReservationInfo();
 		} else if (e.getSource() == buttonOK) {
 			canceled = false;
+			setVisible(false);
+			dispose();
+		} else if (e.getSource() == buttonDelete) {
+			canceled = false;
+			deleteRequested = true;
 			setVisible(false);
 			dispose();
 		}

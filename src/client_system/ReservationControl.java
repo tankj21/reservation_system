@@ -529,6 +529,41 @@ public class ReservationControl {
 				return res;
 			}
 
+			// 削除要求された場合
+			if (rd.deleteRequested) {
+				String reservationIdStr = rd.tfReservationId.getText().trim();
+				if (!reservationIdStr.matches("[0-9]+")) {
+					res = "予約IDは半角数字で入力してください。";
+					return res;
+				}
+				try {
+					int reservationId = Integer.parseInt(reservationIdStr);
+					connectDB();
+					String checkSql = "SELECT * FROM db_reservation.reservation WHERE reservation_id = " + reservationId + ";";
+					ResultSet checkRs = sqlStmt.executeQuery(checkSql);
+					if (!checkRs.next()) {
+						res = "指定された予約IDが存在しません。";
+						return res;
+					}
+					String dbUserId = checkRs.getString("user_id");
+					System.out.println("Comparing (Delete): DB UserID = [" + dbUserId + "], LoggedIn UserID = [" + reservationUserID + "]");
+					if (!dbUserId.trim().equalsIgnoreCase(reservationUserID.trim())) {
+						res = "自分以外の予約は削除できません。";
+						return res;
+					}
+					String sql = "DELETE FROM db_reservation.reservation WHERE reservation_id = " + reservationId + ";";
+					System.out.println(sql);
+					sqlStmt.executeUpdate(sql);
+					res = "予約ID " + reservationId + " の予約を削除しました。";
+				} catch (Exception e) {
+					res = "予期しないエラーが発生しました。";
+					e.printStackTrace();
+				} finally {
+					closeDB();
+				}
+				return res;
+			}
+
 			// 入力情報の取得
 			String ryear_str = rd.tfYear.getText().trim();
 			String rmonth_str = rd.tfMonth.getText().trim();
@@ -620,7 +655,8 @@ public class ReservationControl {
 					return res;
 				}
 				String dbUserId = checkRs.getString("user_id");
-				if (!dbUserId.equals(reservationUserID)) {
+				System.out.println("Comparing (Change): DB UserID = [" + dbUserId + "], LoggedIn UserID = [" + reservationUserID + "]");
+				if (!dbUserId.trim().equalsIgnoreCase(reservationUserID.trim())) {
 					res = "自分以外の予約は変更できません。";
 					return res;
 				}
