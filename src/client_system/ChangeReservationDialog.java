@@ -18,8 +18,8 @@ import java.util.List;
 
 public class ChangeReservationDialog extends Dialog implements ActionListener, WindowListener, ItemListener {
 
-	boolean canceled;								// 変更キャンセルステータス（キャンセル：true）
-	ReservationControl rc;							// ReservationControlインスタンス保存用
+	boolean canceled; // 変更キャンセルステータス（キャンセル：true）
+	ReservationControl rc; // ReservationControlインスタンス保存用
 
 	// パネル
 	Panel panelNorth;
@@ -29,21 +29,21 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 	Panel panelSouth;
 
 	// 入力用コンポーネント
-	TextField tfReservationId;						// 変更対象予約IDのテキストフィールド
-	Button buttonLoad;								// 予約情報読込ボタン
-	ChoiceFacility choiceFacility;					// 教室選択用ボックス
-	TextField tfYear, tfMonth, tfDay;				// 年月日のテキストフィールド
-	ChoiceHour startHour;							// 予約開始時間（時）の選択ボックス
-	ChoiceMinute startMinute;						// 予約開始時間（分）の選択ボックス
-	ChoiceHour endHour;								// 予約終了時間（時）の選択ボックス
-	ChoiceMinute endMinute;							// 予約終了時間（分）の選択ボックス
+	TextField tfReservationId; // 変更対象予約IDのテキストフィールド
+	Button buttonLoad; // 予約情報読込ボタン
+	ChoiceFacility choiceFacility; // 教室選択用ボックス
+	TextField tfYear, tfMonth, tfDay; // 年月日のテキストフィールド
+	ChoiceHour startHour; // 予約開始時間（時）の選択ボックス
+	ChoiceMinute startMinute; // 予約開始時間（分）の選択ボックス
+	ChoiceHour endHour; // 予約終了時間（時）の選択ボックス
+	ChoiceMinute endMinute; // 予約終了時間（分）の選択ボックス
 
 	// メッセージ表示ラベル
 	Label lblMessage;
 
 	// ボタン
-	Button buttonOK;								// OKボタン（変更実行）
-	Button buttonCancel;							// キャンセルボタン
+	Button buttonOK; // OKボタン（変更実行）
+	Button buttonCancel; // キャンセルボタン
 
 	public ChangeReservationDialog(Frame owner, ReservationControl rc) {
 		super(owner, "予約変更", true);
@@ -195,14 +195,14 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 		// 開始時刻 (hh:mm:ss) のパースとセット
 		String[] startParts = info.startTime.split(":");
 		if (startParts.length >= 2) {
-			startHour.select(String.valueOf(Integer.parseInt(startParts[0])));
+			startHour.select(String.format("%02d", Integer.parseInt(startParts[0])));
 			startMinute.select(startParts[1]);
 		}
 
 		// 終了時刻 (hh:mm:ss) のパースとセット
 		String[] endParts = info.endTime.split(":");
 		if (endParts.length >= 2) {
-			endHour.select(String.valueOf(Integer.parseInt(endParts[0])));
+			endHour.select(String.format("%02d", Integer.parseInt(endParts[0])));
 			endMinute.select(endParts[1]);
 		}
 
@@ -261,20 +261,26 @@ public class ChangeReservationDialog extends Dialog implements ActionListener, W
 	}
 
 	@Override
-	public void windowOpened(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {
+	}
 
 	@Override
-	public void windowClosed(WindowEvent e) {}
+	public void windowClosed(WindowEvent e) {
+	}
 
 	@Override
-	public void windowIconified(WindowEvent e) {}
+	public void windowIconified(WindowEvent e) {
+	}
 
 	@Override
-	public void windowDeiconified(WindowEvent e) {}
+	public void windowDeiconified(WindowEvent e) {
+	}
 
 	@Override
-	public void windowActivated(WindowEvent e) {}
+	public void windowActivated(WindowEvent e) {
+	}
 
 	@Override
-	public void windowDeactivated(WindowEvent e) {}
+	public void windowDeactivated(WindowEvent e) {
+	}
 }

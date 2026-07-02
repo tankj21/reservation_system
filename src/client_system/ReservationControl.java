@@ -536,7 +536,11 @@ public class ReservationControl {
 			String reservationIdStr = rd.tfReservationId.getText().trim();
 
 			// 入力文字が半角数字になっているか
-			if (!reservationIdStr.matches("[0-9]+") || !ryear_str.matches("[0-9]+") || !rmonth_str.matches("[0-9]+") || !rday_str.matches("[0-9]+")) {
+			if (!reservationIdStr.matches("[0-9]+")) {
+				res = "予約IDは半角数字で入力してください。";
+				return res;
+			}
+			if (!ryear_str.matches("[0-9]+") || !rmonth_str.matches("[0-9]+") || !rday_str.matches("[0-9]+")) {
 				res = "日付の値を修正して下さい。";
 				return res;
 			}
@@ -613,19 +617,15 @@ public class ReservationControl {
 				ResultSet checkRs = sqlStmt.executeQuery(checkSql);
 				if (!checkRs.next()) {
 					res = "指定された予約IDが存在しません。";
-					closeDB();
 					return res;
 				}
 				String dbUserId = checkRs.getString("user_id");
 				if (!dbUserId.equals(reservationUserID)) {
 					res = "自分以外の予約は変更できません。";
-					closeDB();
 					return res;
 				}
-				closeDB();
 
 				// 重複チェック (変更対象の予約ID自身は除く)
-				connectDB();
 				String rdate = ryear_str + "-" + rmonth_str + "-" + rday_str;
 				String sql = "SELECT * FROM db_reservation.reservation WHERE facility_id = '" + facility
 						+ "' AND day = '" + rdate + "' AND reservation_id <> " + reservationId + ";";
